@@ -1,0 +1,421 @@
+﻿
+<!DOCTYPE html>
+<html lang='en'><head><meta charset='UTF-8'><meta name='viewport' content='width=device-width,initial-scale=1'><title>Flowers for You</title>
+<style>
+:root {
+  --bg: #06000a;
+  --glow-red: #6b0000;
+  --petal-base: #8b0000;
+  --petal-mid: #c0392b;
+  --petal-tip: #ff8a80;
+  --leaf: #00695c;
+  --leaf-light: #26a69a;
+  --stem: #1b5e20;
+  --grass: #2e7d32;
+  --pill-bg: rgba(80,0,20,0.75);
+  --pill-border: rgba(255,100,100,0.35);
+  --pill-text: #ffb3b3;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+html,body{width:100%;height:100%;overflow:hidden;background:var(--bg)}
+body{position:relative;display:flex;align-items:flex-end;justify-content:center}
+
+/* Radial glow at bottom */
+body::before{
+  content:'';position:absolute;inset:0;
+  background:radial-gradient(ellipse 80% 50% at 50% 100%, rgba(120,0,0,0.55) 0%, rgba(60,0,0,0.2) 40%, transparent 70%);
+  pointer-events:none;z-index:0;
+}
+/* Grain overlay */
+body::after{
+  content:'';position:absolute;inset:0;
+  background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");
+  opacity:0.18;pointer-events:none;z-index:1;
+}
+
+#scene{position:relative;width:100vw;height:100vh;z-index:2}
+#garden-svg{position:absolute;bottom:0;left:50%;transform:translateX(-50%);width:700px;max-width:100vw;height:90vh}
+
+/* Stem sway */
+.flower-group{transform-origin:bottom center;animation:sway1 4s ease-in-out infinite}
+.flower-group:nth-child(2){animation:sway2 5s ease-in-out infinite;animation-delay:-1.5s}
+.flower-group:nth-child(3){animation:sway3 3.8s ease-in-out infinite;animation-delay:-0.8s}
+.flower-group:nth-child(4){animation:sway1 4.5s ease-in-out infinite;animation-delay:-2s}
+.flower-group:nth-child(5){animation:sway2 5.2s ease-in-out infinite;animation-delay:-3s}
+
+@keyframes sway1{0%,100%{transform:rotate(-2deg)}50%{transform:rotate(2deg)}}
+@keyframes sway2{0%,100%{transform:rotate(1.5deg)}50%{transform:rotate(-2.5deg)}}
+@keyframes sway3{0%,100%{transform:rotate(-1deg)}50%{transform:rotate(3deg)}}
+
+/* Petal bloom */
+.petal{transform-origin:50% 100%;animation:bloom 1.2s cubic-bezier(0.34,1.56,0.64,1) forwards;opacity:0}
+@keyframes bloom{0%{transform:scale(0) rotate(-40deg);opacity:0}100%{transform:scale(1) rotate(0deg);opacity:1}}
+.petal:nth-child(1){animation-delay:0.1s}
+.petal:nth-child(2){animation-delay:0.2s}
+.petal:nth-child(3){animation-delay:0.3s}
+.petal:nth-child(4){animation-delay:0.4s}
+.petal:nth-child(5){animation-delay:0.5s}
+.petal:nth-child(6){animation-delay:0.6s}
+.petal:nth-child(7){animation-delay:0.7s}
+
+/* Petal shimmer */
+.petal{animation:bloom 1.2s cubic-bezier(0.34,1.56,0.64,1) forwards, shimmer 3s ease-in-out infinite}
+@keyframes shimmer{0%,100%{filter:brightness(1)}50%{filter:brightness(1.15)}}
+
+/* Flower glow */
+.flower-head{filter:drop-shadow(0 0 8px rgba(200,50,50,0.6)) drop-shadow(0 0 20px rgba(180,0,0,0.3))}
+.flower-group:hover .flower-head{filter:drop-shadow(0 0 16px rgba(255,100,80,0.9)) drop-shadow(0 0 35px rgba(220,50,0,0.5));cursor:pointer}
+.flower-group:hover .petal{filter:brightness(1.3)}
+
+/* Fireflies */
+.firefly{position:absolute;width:4px;height:4px;border-radius:50%;background:#fffde7;box-shadow:0 0 6px 2px rgba(255,255,180,0.8);animation:fly linear infinite;pointer-events:none}
+@keyframes fly{0%{transform:translate(0,0);opacity:0}10%{opacity:1}90%{opacity:0.8}100%{transform:translate(var(--dx),var(--dy));opacity:0}}
+
+/* Falling petals */
+.fall-petal{position:absolute;top:-30px;pointer-events:none;animation:fall linear infinite;opacity:0.7}
+@keyframes fall{0%{transform:translateY(0) rotate(0deg) translateX(0);opacity:0.8}100%{transform:translateY(110vh) rotate(720deg) translateX(var(--drift));opacity:0}}
+
+/* Ripple */
+.ripple{position:absolute;border-radius:50%;border:2px solid rgba(255,150,150,0.6);animation:ripple-out 0.8s ease-out forwards;pointer-events:none;transform:translate(-50%,-50%)}
+@keyframes ripple-out{0%{width:0;height:0;opacity:1}100%{width:120px;height:120px;opacity:0}}
+
+/* Burst petal */
+.burst-petal{position:absolute;pointer-events:none;animation:burst-fly 1s ease-out forwards}
+@keyframes burst-fly{0%{transform:translate(0,0) scale(1);opacity:1}100%{transform:translate(var(--bx),var(--by)) scale(0.3);opacity:0}}
+
+/* Pills */
+.pill{position:absolute;background:var(--pill-bg);border:1px solid var(--pill-border);border-radius:999px;padding:10px 20px;color:var(--pill-text);font-family:'Georgia',serif;font-size:13px;letter-spacing:0.5px;backdrop-filter:blur(8px);white-space:nowrap;animation:float-pill 3s ease-in-out infinite;z-index:10;pointer-events:none;box-shadow:0 0 15px rgba(180,0,0,0.2)}
+.pill:nth-child(1){top:18%;left:4%;animation-delay:0s}
+.pill:nth-child(2){top:22%;right:4%;animation-delay:0.8s}
+.pill:nth-child(3){top:58%;left:3%;animation-delay:1.6s}
+.pill:nth-child(4){top:62%;right:3%;animation-delay:2.4s}
+@keyframes float-pill{0%,100%{transform:translateY(0)}50%{transform:translateY(-10px)}}
+</style>
+</head><body>
+<div id="scene">
+  <!-- Love message pills -->
+  <div class="pill">you are my favorite person</div>
+  <div class="pill">i'm lucky to have you</div>
+  <div class="pill">you make my world brighter</div>
+  <div class="pill">every flower reminds me of you</div>
+
+  <!-- Main SVG Garden -->
+  <svg id="garden-svg" viewBox="0 0 700 600" xmlns="http://www.w3.org/2000/svg">
+    <defs>
+      <!-- Petal gradients -->
+      <radialGradient id="pg1" cx="50%" cy="80%" r="60%">
+        <stop offset="0%" stop-color="#7b0000"/>
+        <stop offset="40%" stop-color="#c0392b"/>
+        <stop offset="100%" stop-color="#ff8a80" stop-opacity="0.85"/>
+      </radialGradient>
+      <radialGradient id="pg2" cx="50%" cy="80%" r="60%">
+        <stop offset="0%" stop-color="#6a0000"/>
+        <stop offset="45%" stop-color="#b71c1c"/>
+        <stop offset="100%" stop-color="#ff7043" stop-opacity="0.85"/>
+      </radialGradient>
+      <radialGradient id="pg3" cx="50%" cy="80%" r="60%">
+        <stop offset="0%" stop-color="#880000"/>
+        <stop offset="40%" stop-color="#d32f2f"/>
+        <stop offset="100%" stop-color="#ffab91" stop-opacity="0.9"/>
+      </radialGradient>
+      <!-- Leaf gradient -->
+      <linearGradient id="lg1" x1="0%" y1="0%" x2="100%" y2="100%">
+        <stop offset="0%" stop-color="#26a69a"/>
+        <stop offset="100%" stop-color="#004d40"/>
+      </linearGradient>
+      <linearGradient id="lg2" x1="0%" y1="0%" x2="100%" y2="100%">
+        <stop offset="0%" stop-color="#00897b"/>
+        <stop offset="100%" stop-color="#003d33"/>
+      </linearGradient>
+      <!-- Stem gradient -->
+      <linearGradient id="stemg" x1="0%" y1="0%" x2="100%" y2="0%">
+        <stop offset="0%" stop-color="#1b5e20"/>
+        <stop offset="50%" stop-color="#2e7d32"/>
+        <stop offset="100%" stop-color="#1b5e20"/>
+      </linearGradient>
+      <!-- Stamen gradient -->
+      <radialGradient id="stameng" cx="50%" cy="50%" r="50%">
+        <stop offset="0%" stop-color="#ffd54f"/>
+        <stop offset="100%" stop-color="#e65100"/>
+      </radialGradient>
+      <!-- Glow filter -->
+      <filter id="glow" x="-50%" y="-50%" width="200%" height="200%">
+        <feGaussianBlur stdDeviation="4" result="blur"/>
+        <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+      </filter>
+      <filter id="softglow" x="-80%" y="-80%" width="260%" height="260%">
+        <feGaussianBlur stdDeviation="8" result="blur"/>
+        <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+      </filter>
+      <filter id="leafglow">
+        <feGaussianBlur stdDeviation="2" result="blur"/>
+        <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+      </filter>
+    </defs>
+    <!-- GRASS BLADES -->
+    <g id="grass">
+      <path d="M50,600 Q55,520 48,480 Q52,520 60,600" fill="url(#stemg)" opacity="0.9"/>
+      <path d="M80,600 Q90,510 82,460 Q88,510 98,600" fill="#2e7d32" opacity="0.85"/>
+      <path d="M120,600 Q125,530 118,490 Q122,530 132,600" fill="#388e3c" opacity="0.9"/>
+      <path d="M160,600 Q168,515 158,470 Q165,515 175,600" fill="#2e7d32" opacity="0.8"/>
+      <path d="M200,600 Q205,525 198,485 Q203,525 212,600" fill="#1b5e20" opacity="0.9"/>
+      <path d="M240,600 Q248,510 238,465 Q245,510 255,600" fill="#388e3c" opacity="0.85"/>
+      <path d="M280,600 Q285,520 278,478 Q283,520 292,600" fill="#2e7d32" opacity="0.9"/>
+      <path d="M320,600 Q328,515 318,472 Q325,515 335,600" fill="#1b5e20" opacity="0.8"/>
+      <path d="M360,600 Q365,525 358,482 Q363,525 372,600" fill="#388e3c" opacity="0.9"/>
+      <path d="M400,600 Q408,510 398,465 Q405,510 415,600" fill="#2e7d32" opacity="0.85"/>
+      <path d="M440,600 Q445,520 438,478 Q443,520 452,600" fill="#1b5e20" opacity="0.9"/>
+      <path d="M480,600 Q488,515 478,470 Q485,515 495,600" fill="#388e3c" opacity="0.8"/>
+      <path d="M520,600 Q525,525 518,482 Q523,525 532,600" fill="#2e7d32" opacity="0.9"/>
+      <path d="M560,600 Q568,510 558,465 Q565,510 575,600" fill="#1b5e20" opacity="0.85"/>
+      <path d="M600,600 Q605,520 598,478 Q603,520 612,600" fill="#388e3c" opacity="0.9"/>
+      <path d="M640,600 Q648,515 638,470 Q645,515 655,600" fill="#2e7d32" opacity="0.8"/>
+      <!-- Shorter front grass -->
+      <path d="M30,600 Q34,560 28,540 Q32,560 38,600" fill="#4caf50" opacity="0.7"/>
+      <path d="M100,600 Q104,555 98,535 Q102,555 108,600" fill="#43a047" opacity="0.7"/>
+      <path d="M180,600 Q184,558 178,538 Q182,558 188,600" fill="#4caf50" opacity="0.65"/>
+      <path d="M260,600 Q264,560 258,540 Q262,560 268,600" fill="#43a047" opacity="0.7"/>
+      <path d="M340,600 Q344,555 338,535 Q342,555 348,600" fill="#4caf50" opacity="0.65"/>
+      <path d="M420,600 Q424,558 418,538 Q422,558 428,600" fill="#43a047" opacity="0.7"/>
+      <path d="M500,600 Q504,560 498,540 Q502,560 508,600" fill="#4caf50" opacity="0.65"/>
+      <path d="M580,600 Q584,555 578,535 Q582,555 588,600" fill="#43a047" opacity="0.7"/>
+      <path d="M650,600 Q654,558 648,538 Q652,558 658,600" fill="#4caf50" opacity="0.65"/>
+    </g>
+    <!-- FLOWER 1 - tall center -->
+    <g class="flower-group" id="f1" style="transform-origin:350px 600px">
+      <!-- Stem -->
+      <path d="M350,600 Q345,520 348,440 Q352,380 350,300" stroke="url(#stemg)" stroke-width="5" fill="none" stroke-linecap="round"/>
+      <!-- Leaves -->
+      <g filter="url(#leafglow)">
+        <path d="M349,500 Q310,470 290,440 Q295,460 320,480 Q335,490 349,500" fill="url(#lg1)" opacity="0.95"/>
+        <path d="M349,500 Q310,470 290,440" stroke="#00695c" stroke-width="1" fill="none" opacity="0.5"/>
+        <path d="M350,500 Q388,468 408,438 Q403,458 378,478 Q364,490 350,500" fill="url(#lg2)" opacity="0.95"/>
+        <path d="M350,500 Q388,468 408,438" stroke="#004d40" stroke-width="1" fill="none" opacity="0.5"/>
+        <path d="M349,420 Q305,395 282,365 Q288,385 315,405 Q332,415 349,420" fill="url(#lg1)" opacity="0.9"/>
+        <path d="M350,420 Q394,393 418,362 Q412,382 385,402 Q368,413 350,420" fill="url(#lg2)" opacity="0.9"/>
+      </g>
+      <!-- Flower head -->
+      <g class="flower-head" id="f1-head" transform="translate(350,300)" filter="url(#softglow)">
+        <g class="petals">
+          <path class="petal" d="M0,0 Q-18,-35 -8,-65 Q0,-80 8,-65 Q18,-35 0,0" fill="url(#pg1)" opacity="0.92" transform="rotate(0)"/>
+          <path class="petal" d="M0,0 Q-18,-35 -8,-65 Q0,-80 8,-65 Q18,-35 0,0" fill="url(#pg2)" opacity="0.9" transform="rotate(51)"/>
+          <path class="petal" d="M0,0 Q-18,-35 -8,-65 Q0,-80 8,-65 Q18,-35 0,0" fill="url(#pg1)" opacity="0.92" transform="rotate(102)"/>
+          <path class="petal" d="M0,0 Q-18,-35 -8,-65 Q0,-80 8,-65 Q18,-35 0,0" fill="url(#pg3)" opacity="0.9" transform="rotate(153)"/>
+          <path class="petal" d="M0,0 Q-18,-35 -8,-65 Q0,-80 8,-65 Q18,-35 0,0" fill="url(#pg2)" opacity="0.92" transform="rotate(204)"/>
+          <path class="petal" d="M0,0 Q-18,-35 -8,-65 Q0,-80 8,-65 Q18,-35 0,0" fill="url(#pg1)" opacity="0.9" transform="rotate(255)"/>
+          <path class="petal" d="M0,0 Q-18,-35 -8,-65 Q0,-80 8,-65 Q18,-35 0,0" fill="url(#pg3)" opacity="0.92" transform="rotate(306)"/>
+        </g>
+        <!-- Stamen center -->
+        <circle r="10" fill="#1a0000"/>
+        <circle cx="-4" cy="-4" r="2.5" fill="url(#stameng)"/>
+        <circle cx="4" cy="-3" r="2" fill="url(#stameng)"/>
+        <circle cx="0" cy="4" r="2.5" fill="url(#stameng)"/>
+        <circle cx="-5" cy="2" r="1.8" fill="#ffd54f"/>
+        <circle cx="5" cy="2" r="2" fill="#ffd54f"/>
+        <circle cx="0" cy="-6" r="1.5" fill="#ffcc02"/>
+      </g>
+    </g>
+    <!-- FLOWER 2 - left, shorter -->
+    <g class="flower-group" id="f2" style="transform-origin:270px 600px">
+      <path d="M270,600 Q265,535 268,470 Q272,415 268,355" stroke="url(#stemg)" stroke-width="4.5" fill="none" stroke-linecap="round"/>
+      <g filter="url(#leafglow)">
+        <path d="M269,490 Q232,465 212,438 Q218,458 244,474 Q257,483 269,490" fill="url(#lg2)" opacity="0.95"/>
+        <path d="M270,490 Q305,463 325,435 Q319,455 295,471 Q282,481 270,490" fill="url(#lg1)" opacity="0.95"/>
+        <path d="M269,420 Q228,398 208,372 Q215,390 242,406 Q256,414 269,420" fill="url(#lg1)" opacity="0.9"/>
+      </g>
+      <g class="flower-head" id="f2-head" transform="translate(268,355)" filter="url(#softglow)">
+        <g class="petals">
+          <path class="petal" d="M0,0 Q-16,-32 -7,-60 Q0,-74 7,-60 Q16,-32 0,0" fill="url(#pg2)" opacity="0.92" transform="rotate(20)"/>
+          <path class="petal" d="M0,0 Q-16,-32 -7,-60 Q0,-74 7,-60 Q16,-32 0,0" fill="url(#pg1)" opacity="0.9" transform="rotate(72)"/>
+          <path class="petal" d="M0,0 Q-16,-32 -7,-60 Q0,-74 7,-60 Q16,-32 0,0" fill="url(#pg3)" opacity="0.92" transform="rotate(124)"/>
+          <path class="petal" d="M0,0 Q-16,-32 -7,-60 Q0,-74 7,-60 Q16,-32 0,0" fill="url(#pg2)" opacity="0.9" transform="rotate(176)"/>
+          <path class="petal" d="M0,0 Q-16,-32 -7,-60 Q0,-74 7,-60 Q16,-32 0,0" fill="url(#pg1)" opacity="0.92" transform="rotate(228)"/>
+          <path class="petal" d="M0,0 Q-16,-32 -7,-60 Q0,-74 7,-60 Q16,-32 0,0" fill="url(#pg3)" opacity="0.9" transform="rotate(280)"/>
+          <path class="petal" d="M0,0 Q-16,-32 -7,-60 Q0,-74 7,-60 Q16,-32 0,0" fill="url(#pg2)" opacity="0.92" transform="rotate(332)"/>
+        </g>
+        <circle r="9" fill="#1a0000"/>
+        <circle cx="-3" cy="-3" r="2.2" fill="url(#stameng)"/>
+        <circle cx="3" cy="-4" r="2" fill="url(#stameng)"/>
+        <circle cx="0" cy="4" r="2.2" fill="#ffd54f"/>
+        <circle cx="-4" cy="2" r="1.8" fill="#ffcc02"/>
+        <circle cx="4" cy="2" r="1.8" fill="url(#stameng)"/>
+      </g>
+    </g>
+
+    <!-- FLOWER 3 - right, medium -->
+    <g class="flower-group" id="f3" style="transform-origin:430px 600px">
+      <path d="M430,600 Q435,530 432,465 Q428,405 432,340" stroke="url(#stemg)" stroke-width="4.5" fill="none" stroke-linecap="round"/>
+      <g filter="url(#leafglow)">
+        <path d="M431,480 Q468,455 488,428 Q482,448 458,464 Q445,473 431,480" fill="url(#lg1)" opacity="0.95"/>
+        <path d="M430,480 Q395,453 375,425 Q381,445 405,461 Q418,471 430,480" fill="url(#lg2)" opacity="0.95"/>
+        <path d="M431,410 Q470,388 490,362 Q484,380 460,396 Q446,404 431,410" fill="url(#lg2)" opacity="0.9"/>
+      </g>
+      <g class="flower-head" id="f3-head" transform="translate(432,340)" filter="url(#softglow)">
+        <g class="petals">
+          <path class="petal" d="M0,0 Q-17,-33 -7,-62 Q0,-76 7,-62 Q17,-33 0,0" fill="url(#pg3)" opacity="0.92" transform="rotate(-15)"/>
+          <path class="petal" d="M0,0 Q-17,-33 -7,-62 Q0,-76 7,-62 Q17,-33 0,0" fill="url(#pg1)" opacity="0.9" transform="rotate(37)"/>
+          <path class="petal" d="M0,0 Q-17,-33 -7,-62 Q0,-76 7,-62 Q17,-33 0,0" fill="url(#pg2)" opacity="0.92" transform="rotate(89)"/>
+          <path class="petal" d="M0,0 Q-17,-33 -7,-62 Q0,-76 7,-62 Q17,-33 0,0" fill="url(#pg3)" opacity="0.9" transform="rotate(141)"/>
+          <path class="petal" d="M0,0 Q-17,-33 -7,-62 Q0,-76 7,-62 Q17,-33 0,0" fill="url(#pg1)" opacity="0.92" transform="rotate(193)"/>
+          <path class="petal" d="M0,0 Q-17,-33 -7,-62 Q0,-76 7,-62 Q17,-33 0,0" fill="url(#pg2)" opacity="0.9" transform="rotate(245)"/>
+          <path class="petal" d="M0,0 Q-17,-33 -7,-62 Q0,-76 7,-62 Q17,-33 0,0" fill="url(#pg3)" opacity="0.92" transform="rotate(297)"/>
+        </g>
+        <circle r="9" fill="#1a0000"/>
+        <circle cx="-3" cy="-4" r="2" fill="url(#stameng)"/>
+        <circle cx="4" cy="-3" r="2.2" fill="#ffd54f"/>
+        <circle cx="0" cy="4" r="2" fill="url(#stameng)"/>
+        <circle cx="-4" cy="2" r="1.8" fill="#ffcc02"/>
+        <circle cx="4" cy="2" r="2" fill="url(#stameng)"/>
+      </g>
+    </g>
+    <!-- FLOWER 4 - far left, tallest -->
+    <g class="flower-group" id="f4" style="transform-origin:195px 600px">
+      <path d="M195,600 Q188,515 192,445 Q196,375 192,295" stroke="url(#stemg)" stroke-width="4" fill="none" stroke-linecap="round"/>
+      <g filter="url(#leafglow)">
+        <path d="M193,510 Q155,488 135,460 Q142,478 168,494 Q181,503 193,510" fill="url(#lg2)" opacity="0.9"/>
+        <path d="M194,510 Q230,486 250,458 Q243,476 219,492 Q207,501 194,510" fill="url(#lg1)" opacity="0.9"/>
+        <path d="M193,430 Q152,408 130,380 Q138,398 165,414 Q179,422 193,430" fill="url(#lg1)" opacity="0.85"/>
+        <path d="M194,430 Q232,406 254,378 Q246,396 222,412 Q208,421 194,430" fill="url(#lg2)" opacity="0.85"/>
+      </g>
+      <g class="flower-head" id="f4-head" transform="translate(192,295)" filter="url(#softglow)">
+        <g class="petals">
+          <path class="petal" d="M0,0 Q-15,-30 -6,-57 Q0,-70 6,-57 Q15,-30 0,0" fill="url(#pg1)" opacity="0.92" transform="rotate(10)"/>
+          <path class="petal" d="M0,0 Q-15,-30 -6,-57 Q0,-70 6,-57 Q15,-30 0,0" fill="url(#pg3)" opacity="0.9" transform="rotate(62)"/>
+          <path class="petal" d="M0,0 Q-15,-30 -6,-57 Q0,-70 6,-57 Q15,-30 0,0" fill="url(#pg2)" opacity="0.92" transform="rotate(114)"/>
+          <path class="petal" d="M0,0 Q-15,-30 -6,-57 Q0,-70 6,-57 Q15,-30 0,0" fill="url(#pg1)" opacity="0.9" transform="rotate(166)"/>
+          <path class="petal" d="M0,0 Q-15,-30 -6,-57 Q0,-70 6,-57 Q15,-30 0,0" fill="url(#pg3)" opacity="0.92" transform="rotate(218)"/>
+          <path class="petal" d="M0,0 Q-15,-30 -6,-57 Q0,-70 6,-57 Q15,-30 0,0" fill="url(#pg2)" opacity="0.9" transform="rotate(270)"/>
+        </g>
+        <circle r="8" fill="#1a0000"/>
+        <circle cx="-3" cy="-3" r="2" fill="url(#stameng)"/>
+        <circle cx="3" cy="-3" r="1.8" fill="#ffd54f"/>
+        <circle cx="0" cy="3" r="2" fill="url(#stameng)"/>
+        <circle cx="-3" cy="2" r="1.5" fill="#ffcc02"/>
+        <circle cx="3" cy="2" r="1.8" fill="url(#stameng)"/>
+      </g>
+    </g>
+
+    <!-- FLOWER 5 - far right, medium-short -->
+    <g class="flower-group" id="f5" style="transform-origin:510px 600px">
+      <path d="M510,600 Q516,535 512,472 Q508,418 514,368" stroke="url(#stemg)" stroke-width="4" fill="none" stroke-linecap="round"/>
+      <g filter="url(#leafglow)">
+        <path d="M511,490 Q548,468 568,442 Q561,460 537,476 Q524,484 511,490" fill="url(#lg1)" opacity="0.9"/>
+        <path d="M510,490 Q474,466 454,440 Q461,458 485,474 Q498,482 510,490" fill="url(#lg2)" opacity="0.9"/>
+        <path d="M512,425 Q550,403 570,377 Q563,395 539,411 Q526,419 512,425" fill="url(#lg2)" opacity="0.85"/>
+      </g>
+      <g class="flower-head" id="f5-head" transform="translate(514,368)" filter="url(#softglow)">
+        <g class="petals">
+          <path class="petal" d="M0,0 Q-14,-28 -6,-54 Q0,-66 6,-54 Q14,-28 0,0" fill="url(#pg2)" opacity="0.92" transform="rotate(-20)"/>
+          <path class="petal" d="M0,0 Q-14,-28 -6,-54 Q0,-66 6,-54 Q14,-28 0,0" fill="url(#pg1)" opacity="0.9" transform="rotate(32)"/>
+          <path class="petal" d="M0,0 Q-14,-28 -6,-54 Q0,-66 6,-54 Q14,-28 0,0" fill="url(#pg3)" opacity="0.92" transform="rotate(84)"/>
+          <path class="petal" d="M0,0 Q-14,-28 -6,-54 Q0,-66 6,-54 Q14,-28 0,0" fill="url(#pg2)" opacity="0.9" transform="rotate(136)"/>
+          <path class="petal" d="M0,0 Q-14,-28 -6,-54 Q0,-66 6,-54 Q14,-28 0,0" fill="url(#pg1)" opacity="0.92" transform="rotate(188)"/>
+          <path class="petal" d="M0,0 Q-14,-28 -6,-54 Q0,-66 6,-54 Q14,-28 0,0" fill="url(#pg3)" opacity="0.9" transform="rotate(240)"/>
+          <path class="petal" d="M0,0 Q-14,-28 -6,-54 Q0,-66 6,-54 Q14,-28 0,0" fill="url(#pg2)" opacity="0.92" transform="rotate(292)"/>
+        </g>
+        <circle r="8" fill="#1a0000"/>
+        <circle cx="-3" cy="-3" r="1.8" fill="url(#stameng)"/>
+        <circle cx="3" cy="-3" r="2" fill="#ffd54f"/>
+        <circle cx="0" cy="3" r="1.8" fill="url(#stameng)"/>
+        <circle cx="-3" cy="2" r="1.5" fill="#ffcc02"/>
+        <circle cx="3" cy="2" r="1.8" fill="url(#stameng)"/>
+      </g>
+    </g>
+
+  </svg><!-- end garden-svg -->
+</div><!-- end scene -->
+<script>
+// ── Fireflies ──────────────────────────────────────────────
+const scene = document.getElementById('scene');
+for(let i=0;i<22;i++){
+  const ff = document.createElement('div');
+  ff.className = 'firefly';
+  const x = Math.random()*100, y = Math.random()*85;
+  const dx = (Math.random()-0.5)*300, dy = (Math.random()-0.5)*200;
+  const dur = 4+Math.random()*8, delay = Math.random()*8;
+  ff.style.cssText = `left:${x}%;top:${y}%;--dx:${dx}px;--dy:${dy}px;animation-duration:${dur}s;animation-delay:-${delay}s;width:${2+Math.random()*3}px;height:${2+Math.random()*3}px;opacity:${0.4+Math.random()*0.6}`;
+  scene.appendChild(ff);
+}
+
+// ── Falling petals ─────────────────────────────────────────
+const petalPaths = [
+  'M0,0 Q-8,-15 -3,-28 Q0,-34 3,-28 Q8,-15 0,0',
+  'M0,0 Q-10,-12 -4,-24 Q0,-30 4,-24 Q10,-12 0,0',
+  'M0,0 Q-7,-18 -2,-32 Q0,-38 2,-32 Q7,-18 0,0'
+];
+for(let i=0;i<12;i++){
+  const fp = document.createElementNS('http://www.w3.org/2000/svg','svg');
+  fp.setAttribute('width','20');fp.setAttribute('height','40');
+  fp.setAttribute('viewBox','-15 -40 30 45');
+  fp.style.position='absolute';
+  const path = document.createElementNS('http://www.w3.org/2000/svg','path');
+  path.setAttribute('d', petalPaths[i%3]);
+  const colors=['#c0392b','#e74c3c','#ff6b6b','#ff8a80','#b71c1c'];
+  path.setAttribute('fill', colors[i%colors.length]);
+  path.setAttribute('opacity','0.75');
+  fp.appendChild(path);
+  fp.className='fall-petal';
+  const left=Math.random()*100;
+  const drift=(Math.random()-0.5)*200;
+  const dur=6+Math.random()*10;
+  const delay=Math.random()*12;
+  fp.style.cssText=`left:${left}%;--drift:${drift}px;animation-duration:${dur}s;animation-delay:-${delay}s`;
+  scene.appendChild(fp);
+}
+
+// ── Flower click: re-bloom + burst ─────────────────────────
+function triggerRebloom(flowerGroup){
+  const petals = flowerGroup.querySelectorAll('.petal');
+  petals.forEach((p,i)=>{
+    p.style.animation='none';
+    p.style.opacity='0';
+    p.style.transform='scale(0) rotate(-40deg)';
+    setTimeout(()=>{
+      p.style.animation=`bloom 1.2s cubic-bezier(0.34,1.56,0.64,1) ${i*0.1}s forwards, shimmer 3s ease-in-out ${i*0.1}s infinite`;
+    },20);
+  });
+}
+
+function spawnBurst(x, y, count=8){
+  for(let i=0;i<count;i++){
+    const bp = document.createElementNS('http://www.w3.org/2000/svg','svg');
+    bp.setAttribute('width','16');bp.setAttribute('height','30');
+    bp.setAttribute('viewBox','-10 -32 20 36');
+    const path = document.createElementNS('http://www.w3.org/2000/svg','path');
+    path.setAttribute('d','M0,0 Q-7,-14 -3,-26 Q0,-32 3,-26 Q7,-14 0,0');
+    const cols=['#ff6b6b','#ff8a80','#c0392b','#e74c3c','#ffab91'];
+    path.setAttribute('fill',cols[i%cols.length]);
+    bp.appendChild(path);
+    bp.className='burst-petal';
+    const angle=(i/count)*Math.PI*2;
+    const dist=60+Math.random()*80;
+    const bx=Math.cos(angle)*dist, by=Math.sin(angle)*dist-60;
+    bp.style.cssText=`left:${x}px;top:${y}px;--bx:${bx}px;--by:${by}px;transform:translate(-50%,-50%);position:fixed;z-index:999;pointer-events:none`;
+    document.body.appendChild(bp);
+    setTimeout(()=>bp.remove(),1100);
+  }
+}
+
+document.querySelectorAll('.flower-group').forEach(fg=>{
+  fg.addEventListener('click',e=>{
+    e.stopPropagation();
+    triggerRebloom(fg);
+    const rect=fg.getBoundingClientRect();
+    spawnBurst(rect.left+rect.width/2, rect.top+rect.height*0.25, 10);
+  });
+});
+
+// ── Click anywhere: ripple + petal shower ──────────────────
+document.addEventListener('click',e=>{
+  if(e.target.closest('.flower-group')) return;
+  // Ripple
+  const rip=document.createElement('div');
+  rip.className='ripple';
+  rip.style.cssText=`left:${e.clientX}px;top:${e.clientY}px;position:fixed;z-index:998`;
+  document.body.appendChild(rip);
+  setTimeout(()=>rip.remove(),900);
+  // Small petal shower
+  spawnBurst(e.clientX, e.clientY, 5);
+});
+</script>
+</body></html>
