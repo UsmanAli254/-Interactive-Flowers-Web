@@ -40,12 +40,12 @@ body::after{content:'';position:absolute;inset:0;opacity:.15;pointer-events:none
 @keyframes fly{0%{transform:translate(0,0);opacity:0}8%{opacity:1}85%{opacity:.95}100%{transform:translate(var(--dx),var(--dy));opacity:0}}
 @keyframes ffpulse{0%,100%{box-shadow:0 0 8px 4px rgba(255,255,120,.8),0 0 22px 10px rgba(255,220,50,.35)}50%{box-shadow:0 0 16px 8px rgba(255,255,160,1),0 0 40px 18px rgba(255,230,80,.6)}}
 /* ── Falling petals - FIXED ── */
-.fp{position:fixed;left:var(--left);top:-60px;pointer-events:none;z-index:40;animation:fall var(--dur) linear var(--del) infinite}
+.fp{position:fixed;top:-70px;pointer-events:none;z-index:40;animation:fall var(--dur,10s) linear var(--del,0s) infinite}
 @keyframes fall{
-  0%  {transform:translateX(0)      translateY(0)      rotate(0deg)   scale(1);  opacity:.85}
+  0%  {transform:translate(0,0) rotate(0deg) scale(1);opacity:.9}
   15% {opacity:1}
-  85% {opacity:.75}
-  100%{transform:translateX(var(--drift)) translateY(115vh) rotate(800deg) scale(.5);opacity:0}
+  85% {opacity:.7}
+  100%{transform:translate(var(--drift,50px),115vh) rotate(800deg) scale(.4);opacity:0}
 }
 /* ── Touch petal rain ── */
 .tp{position:fixed;pointer-events:none;z-index:9999;animation:tpfall var(--dur,1s) cubic-bezier(.2,.8,.3,1) var(--del,0s) forwards}
@@ -490,8 +490,6 @@ body::after{content:'';position:absolute;inset:0;opacity:.15;pointer-events:none
   </svg>
 </div>
 <script>
-const scene = document.getElementById('scene');
-
 // ── Petal shapes & colors ──────────────────────────────────
 const SHAPES = [
   'M0,0 Q-12,-8 -14,-32 Q-10,-54 0,-58 Q10,-54 14,-32 Q12,-8 0,0',
@@ -507,12 +505,13 @@ const COLORS = [
   '#e8506a','#f4909a','#d84060',
 ];
 
-function makePetalSVG(size) {
-  const svg = document.createElementNS('http://www.w3.org/2000/svg','svg');
+function makePetal(size) {
+  const ns = 'http://www.w3.org/2000/svg';
+  const svg = document.createElementNS(ns, 'svg');
   svg.setAttribute('width', size);
   svg.setAttribute('height', size * 2.2);
   svg.setAttribute('viewBox', '-18 -60 36 65');
-  const path = document.createElementNS('http://www.w3.org/2000/svg','path');
+  const path = document.createElementNS(ns, 'path');
   path.setAttribute('d', SHAPES[Math.floor(Math.random() * SHAPES.length)]);
   path.setAttribute('fill', COLORS[Math.floor(Math.random() * COLORS.length)]);
   path.setAttribute('opacity', (0.65 + Math.random() * 0.3).toFixed(2));
@@ -525,8 +524,10 @@ for (let i = 0; i < 28; i++) {
   const ff = document.createElement('div');
   ff.className = 'ff';
   const sz = 3 + Math.random() * 5;
-  const x = Math.random() * 95, y = 5 + Math.random() * 80;
-  const dx = (Math.random() - .5) * 400, dy = (Math.random() - .5) * 280;
+  const x = Math.random() * 95;
+  const y = 5 + Math.random() * 80;
+  const dx = (Math.random() - .5) * 400;
+  const dy = (Math.random() - .5) * 280;
   const flyDur = 5 + Math.random() * 10;
   const pulseDur = 1.0 + Math.random() * 2.0;
   const del = -(Math.random() * 12);
@@ -534,24 +535,29 @@ for (let i = 0; i < 28; i++) {
   document.body.appendChild(ff);
 }
 
-// ── AMBIENT FALLING PETALS from top ───────────────────────
-for (let i = 0; i < 24; i++) {
-  const svg = makePetalSVG(16 + Math.random() * 20);
-  svg.className = 'fp';
-  const left = (Math.random() * 110 - 5);
-  const drift = (Math.random() - .5) * 300;
+// ── AMBIENT FALLING PETALS ────────────────────────────────
+// Use canvas-based animation so it ALWAYS works regardless of CSS quirks
+function spawnAmbientPetal() {
+  const el = makePetal(16 + Math.random() * 22);
+  el.className = 'fp';
+  const leftPct = (Math.random() * 105 - 2);
+  const drift = (Math.random() - .5) * 280;
   const dur = 9 + Math.random() * 13;
   const del = -(Math.random() * 22);
-  // Use CSS vars so the fixed @keyframes can reference them
-  svg.style.cssText = `--left:${left}%;--drift:${drift}px;--dur:${dur}s;--del:${del}s;left:${left}%`;
-  document.body.appendChild(svg);
+  // Set CSS custom properties AND left directly
+  el.style.left = leftPct + '%';
+  el.style.setProperty('--drift', drift + 'px');
+  el.style.setProperty('--dur', dur + 's');
+  el.style.setProperty('--del', del + 's');
+  document.body.appendChild(el);
 }
+for (let i = 0; i < 26; i++) spawnAmbientPetal();
 
-// ── TOUCH / CLICK: petal rain shower ──────────────────────
+// ── TOUCH / CLICK petal rain ───────────────────────────────
 function spawnTouchRain(x, y) {
   for (let i = 0; i < 16; i++) {
-    const svg = makePetalSVG(12 + Math.random() * 16);
-    svg.className = 'tp';
+    const el = makePetal(12 + Math.random() * 16);
+    el.className = 'tp';
     const angle = (Math.random() * 280 - 140) * Math.PI / 180;
     const dist = 50 + Math.random() * 160;
     const tx = Math.cos(angle) * dist;
@@ -559,9 +565,15 @@ function spawnTouchRain(x, y) {
     const tr = ((Math.random() - .5) * 600).toFixed(0) + 'deg';
     const dur = (0.8 + Math.random() * 0.9).toFixed(2);
     const del = (i * 0.045).toFixed(3);
-    svg.style.cssText = `left:${x}px;top:${y}px;--tx:${tx}px;--ty:${ty}px;--tr:${tr};--dur:${dur}s;--del:${del}s`;
-    document.body.appendChild(svg);
-    setTimeout(() => svg.remove(), (parseFloat(dur) + parseFloat(del) + 0.3) * 1000);
+    el.style.left = x + 'px';
+    el.style.top = y + 'px';
+    el.style.setProperty('--tx', tx + 'px');
+    el.style.setProperty('--ty', ty + 'px');
+    el.style.setProperty('--tr', tr);
+    el.style.setProperty('--dur', dur + 's');
+    el.style.setProperty('--del', del + 's');
+    document.body.appendChild(el);
+    setTimeout(() => el.remove(), (parseFloat(dur) + parseFloat(del) + 0.4) * 1000);
   }
 }
 
@@ -572,21 +584,24 @@ function spawnRipple(x, y) {
   d.style.left = x + 'px';
   d.style.top = y + 'px';
   document.body.appendChild(d);
-  setTimeout(() => d.remove(), 1000);
+  setTimeout(() => d.remove(), 1100);
 }
 
 // ── BURST from flower ─────────────────────────────────────
 function spawnBurst(x, y, count) {
   for (let i = 0; i < count; i++) {
-    const svg = makePetalSVG(14 + Math.random() * 12);
-    svg.className = 'bp';
+    const el = makePetal(14 + Math.random() * 12);
+    el.className = 'bp';
     const angle = (i / count) * Math.PI * 2;
     const dist = 55 + Math.random() * 95;
     const bx = Math.cos(angle) * dist;
     const by = Math.sin(angle) * dist - 65;
-    svg.style.cssText = `left:${x}px;top:${y}px;--bx:${bx}px;--by:${by}px`;
-    document.body.appendChild(svg);
-    setTimeout(() => svg.remove(), 1500);
+    el.style.left = x + 'px';
+    el.style.top = y + 'px';
+    el.style.setProperty('--bx', bx + 'px');
+    el.style.setProperty('--by', by + 'px');
+    document.body.appendChild(el);
+    setTimeout(() => el.remove(), 1500);
   }
 }
 
