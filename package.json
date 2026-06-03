@@ -1,0 +1,15 @@
+{
+  "name": "daizzyy-flowers",
+  "version": "1.0.0",
+  "description": "An interactive flower garden web experience",
+  "scripts": {
+    "dev": "npx serve . --listen 5173",
+    "start": "npx serve ."
+  },
+  "keywords": [],
+  "author": "Usman Ali",
+  "license": "MIT",
+  "devDependencies": {
+    "serve": "^14.2.6"
+  }
+}

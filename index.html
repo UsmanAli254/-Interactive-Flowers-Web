@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="UTF-8">
@@ -90,34 +90,78 @@ body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellips
 .pill:nth-child(2){top:clamp(14%,22%,26%);right:clamp(10px,4%,40px);animation-delay:1.1s}
 @keyframes pillFloat{0%,100%{transform:translateY(0)}50%{transform:translateY(-10px)}}
 
-.real-flower{position:absolute;z-index:4;pointer-events:auto;user-select:none;transform-origin:bottom center;filter:drop-shadow(0 10px 20px rgba(0,0,0,.25)) drop-shadow(0 0 15px rgba(255,255,255,.08))}
-.sunflower{left:17%;bottom:250px;width:180px;animation:sw1 4.2s ease-in-out infinite}
-.tulip{left:34%;bottom:260px;width:140px;animation:sw2 5s ease-in-out infinite}
-.rose{left:50%;bottom:270px;width:170px;animation:sw3 4.5s ease-in-out infinite}
-.daisy{left:70%;bottom:255px;width:130px;animation:sw1 4.8s ease-in-out infinite}
-.real-flower:hover{transform:scale(1.08);transition:.3s}
+
 
 @media(max-width:600px){
   #garden-svg{width:100vw;height:88vh}
   .pill{font-size:10px;padding:6px 12px;max-width:42vw;white-space:normal;text-align:center;line-height:1.3}
-  .sunflower{left:3%;width:120px;bottom:210px}
-  .tulip{left:25%;width:95px;bottom:220px}
-  .rose{left:48%;width:115px;bottom:220px}
-  .daisy{left:72%;width:90px;bottom:215px}
   .pill:nth-child(1){top:8%;left:2%}
   .pill:nth-child(2){top:8%;right:2%}
+}
+
+/* Letter card */
+#letter{
+  position:fixed;bottom:clamp(18px,4vh,40px);left:50%;transform:translateX(-50%);
+  z-index:12;width:min(480px,90vw);
+  background:rgba(8,3,18,.82);
+  border:1px solid rgba(200,160,255,.25);
+  border-radius:18px;
+  padding:clamp(18px,3vw,28px) clamp(20px,4vw,36px);
+  backdrop-filter:blur(14px);
+  box-shadow:0 0 40px rgba(120,60,200,.18),0 2px 0 rgba(255,255,255,.04) inset;
+  animation:letterDrift 5s ease-in-out infinite;
+  pointer-events:none;
+}
+@keyframes letterDrift{0%,100%{transform:translateX(-50%) translateY(0)}50%{transform:translateX(-50%) translateY(-6px)}}
+#letter .lname{
+  font-size:clamp(18px,2.4vw,24px);
+  color:#f0d9ff;
+  font-family:Georgia,serif;
+  letter-spacing:1px;
+  margin-bottom:10px;
+  text-shadow:0 0 18px rgba(200,140,255,.5);
+}
+#letter .lname span{color:#e8a0ff;font-style:italic;}
+#letter .lbody{
+  font-size:clamp(12px,1.35vw,14px);
+  color:#c8b8e0;
+  line-height:1.85;
+  font-family:Georgia,serif;
+  letter-spacing:.3px;
+}
+#letter .lsig{
+  margin-top:14px;
+  font-size:clamp(11px,1.1vw,13px);
+  color:#9878c0;
+  letter-spacing:.5px;
+  text-align:right;
+  font-style:italic;
 }
 </style>
 </head>
 <body>
 <div id="scene">
-  <div class="pill">you are my sunshine 🌻</div>
-  <div class="pill">forever my favorite person 🌹</div>
-  <img class="real-flower sunflower" src="sunflower.png" alt="sunflower">
-  <img class="real-flower tulip" src="tulip.png" alt="tulip">
-  <img class="real-flower rose" src="rose.png" alt="rose">
-  <img class="real-flower daisy" src="daisy.png" alt="daisy">
-  <svg id="garden-svg" viewBox="0 0 760 680" xmlns="http://www.w3.org/2000/svg">
+  <div class="pill">three years &amp; still falling 🌻</div>
+  <div class="pill">one day, forever yours 🌹</div>
+  
+  <div id="letter">
+    <div class="lname">For <span>Daisy</span> 🌼</div>
+    <div class="lbody">
+      Three years. No maps between us, no roads we've shared &mdash;
+      yet somehow you became the place I call home.<br><br>
+      Every single day I wake up grateful that the universe
+      was kind enough to put you in my world.
+      I have never held your hand, but I have felt you
+      in every quiet moment, every late night, every small joy
+      I wished I could share with you.<br><br>
+      One day, I promise, the distance ends.
+      One day I will stand in front of you and finally say
+      what these flowers have been trying to say all along &mdash;
+      <em style="color:#e8a0ff;">you are it for me.</em>
+    </div>
+    <div class="lsig">&mdash; yours, always &hearts;</div>
+  </div>
+<svg id="garden-svg" viewBox="0 0 760 680" xmlns="http://www.w3.org/2000/svg">
   <defs>
     <radialGradient id="sfDiskOuter" cx="50%" cy="50%" r="50%"><stop offset="0%" stop-color="#c05800"/><stop offset="50%" stop-color="#8a3800"/><stop offset="100%" stop-color="#5a2000"/></radialGradient>
     <radialGradient id="sfDiskInner" cx="44%" cy="40%" r="58%"><stop offset="0%" stop-color="#4a4a10"/><stop offset="40%" stop-color="#2e2e05"/><stop offset="100%" stop-color="#181800"/></radialGradient>
@@ -426,11 +470,7 @@ body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellips
   </g>
 
   </svg>
-  <img src="sunflower.webp" class="real-flower sunflower" alt="Sunflower">
-  <img src="tulip.webp" class="real-flower tulip" alt="Tulip">
-  <img src="white-rose.webp" class="real-flower rose" alt="White Rose">
-  <img src="daisy.webp" class="real-flower daisy" alt="Daisy">
-</div>
+  </div>
 <script>
 // ============================================================
 // PERFORMANCE: use canvas for falling petals (no DOM spam)
